@@ -25,7 +25,7 @@
 | Компонент | Технологія |
 |---|---|
 | Платформа | .NET 8 |
-| Інтерфейс (UI) | WPF (архітектура MVVM) |
+| Інтерфейс (UI) | Avalonia UI (MVVM) |
 | База даних | SQLite + Entity Framework Core |
 | Графіки | LiveCharts2 |
 | Тестування | xUnit |
