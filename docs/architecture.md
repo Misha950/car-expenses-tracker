@@ -3,12 +3,13 @@ UML: діаграма компонентів та архітектури
 Застосунок побудований за архітектурним патерном MVVM (Model-View-ViewModel), 
 що розділяє інтерфейс, логіку взаємодії та дані на окремі шари.
 
+```mermaid
 graph TD
     View["View<br/>(.axaml екрани)"] -->|data binding| ViewModel["ViewModel<br/>(логіка екрану)"]
     ViewModel -->|викликає| Services["Services<br/>(логування, розрахунки)"]
     ViewModel -->|читає/пише| Data["Data (DbContext)<br/>(Entity Framework Core)"]
     Data -->|зберігає в| DB[("SQLite<br/>(файл бази даних)")]
-
+```
 
 Опис компонентів
 
