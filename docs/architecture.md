@@ -27,3 +27,51 @@ Core: збереження, читання, оновлення та видале
 
 SQLite — файлова база даних, у якій фізично зберігаються всі дані 
 застосунку локально на пристрої користувача.
+
+Схема основних потоків взаємодії
+
+Сценарій: додавання нового запису (наприклад, заправки)
+
+```mermaid
+sequenceDiagram
+    actor User as Користувач
+    participant V as View
+    participant VM as ViewModel
+    participant S as Services
+    participant D as Data (DbContext)
+    participant DB as SQLite
+
+    User->>V: Натискає "Додати заправку"
+    V->>VM: Відкрити форму додавання
+    User->>V: Вводить дані та натискає "Зберегти"
+    V->>VM: Передає введені дані
+    VM->>VM: Перевіряє коректність (валідація)
+    VM->>D: Зберегти новий запис
+    D->>DB: INSERT запису
+    DB-->>D: Підтвердження збереження
+    D-->>VM: Успіх
+    VM->>S: Записати дію в лог
+    VM-->>V: Оновити список заправок
+    V-->>User: Показати оновлений список
+```
+
+Сценарій: перегляд графіка витрат
+
+```mermaid
+sequenceDiagram
+    actor User as Користувач
+    participant V as View
+    participant VM as ViewModel
+    participant D as Data (DbContext)
+    participant DB as SQLite
+
+    User->>V: Відкриває екран "Звіти"
+    V->>VM: Запит на завантаження даних
+    VM->>D: Отримати всі записи за період
+    D->>DB: SELECT записів
+    DB-->>D: Повертає дані
+    D-->>VM: Список записів
+    VM->>VM: Групує дані по категоріях
+    VM-->>V: Передає дані для графіка
+    V-->>User: Відображає графік
+```
