@@ -3,6 +3,8 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using CarExpensesTracker.ViewModels;
 using CarExpensesTracker.Views;
+using CarExpensesTracker.Data;
+
 
 namespace CarExpensesTracker;
 
@@ -15,6 +17,11 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        using (var db = new AppDbContext())
+        {
+            db.Database.EnsureCreated();
+        }
+        
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.MainWindow = new MainWindow
