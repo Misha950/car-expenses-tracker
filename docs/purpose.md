@@ -24,7 +24,7 @@
 
 | Компонент | Технологія |
 |---|---|
-| Платформа | .NET 8 |
+| Платформа | .NET 10 |
 | Інтерфейс (UI) | Avalonia UI (MVVM) |
 | База даних | SQLite + Entity Framework Core |
 | Графіки | LiveCharts2 |
