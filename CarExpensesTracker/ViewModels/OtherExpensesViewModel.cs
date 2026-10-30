@@ -1,70 +1,194 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
-using System.Windows.Input;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using CarExpensesTracker.Data;
 using CarExpensesTracker.Models;
+using CarExpensesTracker.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
-namespace CarExpensesTracker.ViewModels
+namespace CarExpensesTracker.ViewModels;
+
+// Один рядок списку: запис + кнопки Редагувати/Видалити з підтвердженням
+public partial class OtherExpenseRow : ObservableObject
 {
-    public partial class OtherExpensesViewModel : ViewModelBase
+    private readonly OtherExpensesViewModel _owner;
+
+    public OtherExpense Record { get; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(NotConfirming))]
+    private bool _confirmingDelete;
+
+    public bool NotConfirming => !ConfirmingDelete;
+
+    public OtherExpenseRow(OtherExpense record, OtherExpensesViewModel owner)
     {
-        [ObservableProperty]
-        private string _type = string.Empty;
+        Record = record;
+        _owner = owner;
+    }
 
-        [ObservableProperty]
-        private decimal _amount;
+    [RelayCommand]
+    private void Edit() => _owner.StartEdit(this);
 
-        [ObservableProperty]
-        private DateTime _date = DateTime.Now;
+    [RelayCommand]
+    private void AskDelete() => ConfirmingDelete = true;
 
-        public ObservableCollection<OtherExpense> OtherExpenses { get; set; } = new();
+    [RelayCommand]
+    private void CancelDelete() => ConfirmingDelete = false;
 
-        public ICommand SaveCommand { get; }
+    [RelayCommand]
+    private void ConfirmDelete() => _owner.Delete(this);
+}
 
-        public OtherExpensesViewModel()
+public partial class OtherExpensesViewModel : ViewModelBase
+{
+    private OtherExpenseRow? _editingRow;
+
+    public ObservableCollection<OtherExpenseRow> Rows { get; } = new();
+
+    public string[] Types { get; } = { "Штраф", "Страховка", "Паркування", "Інше" };
+
+    [ObservableProperty]
+    private DateTime? _newDate = DateTime.Today;
+
+    [ObservableProperty]
+    private string _newType = "Штраф";
+
+    [ObservableProperty]
+    private string _newAmount = string.Empty;
+
+    [ObservableProperty]
+    private string _newComment = string.Empty;
+
+    [ObservableProperty]
+    private string _errorMessage = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SaveButtonText))]
+    private bool _isEditing;
+
+    public string SaveButtonText => IsEditing ? "Зберегти" : "Додати";
+
+    public OtherExpensesViewModel()
+    {
+        LoadRecords();
+    }
+
+    private void LoadRecords()
+    {
+        using var db = new AppDbContext();
+        db.Database.EnsureCreated();
+
+        Rows.Clear();
+        foreach (var record in db.OtherExpenses.OrderByDescending(r => r.Date).ToList())
         {
-            LoadExpenses();
-            SaveCommand = new RelayCommand(SaveExpense);
+            Rows.Add(new OtherExpenseRow(record, this));
+        }
+    }
+
+    private void ClearForm()
+    {
+        _editingRow = null;
+        IsEditing = false;
+        NewDate = DateTime.Today;
+        NewType = "Штраф";
+        NewAmount = string.Empty;
+        NewComment = string.Empty;
+        ErrorMessage = string.Empty;
+    }
+
+    public void StartEdit(OtherExpenseRow row)
+    {
+        _editingRow = row;
+        IsEditing = true;
+        ErrorMessage = string.Empty;
+
+        NewDate = row.Record.Date;
+        NewType = row.Record.Type;
+        NewAmount = row.Record.Amount.ToString("0.##", CultureInfo.InvariantCulture);
+        NewComment = row.Record.Comment;
+    }
+
+    public void Delete(OtherExpenseRow row)
+    {
+        using (var db = new AppDbContext())
+        {
+            db.Database.EnsureCreated();
+            var record = db.OtherExpenses.Find(row.Record.Id);
+            if (record is not null)
+            {
+                db.OtherExpenses.Remove(record);
+                db.SaveChanges();
+                LogService.Info($"Видалено витрату {record.Type}: {record.Amount} грн");
+            }
         }
 
-        private void LoadExpenses()
+        if (_editingRow?.Record.Id == row.Record.Id)
         {
-            OtherExpenses.Clear();
-            using (var db = new AppDbContext())
+            ClearForm();
+        }
+
+        LoadRecords();
+    }
+
+    [RelayCommand]
+    private void CancelEdit() => ClearForm();
+
+    [RelayCommand]
+    private void Save()
+    {
+        ErrorMessage = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(NewType))
+        {
+            ErrorMessage = "Оберіть тип витрати";
+            return;
+        }
+
+        var amountText = NewAmount.Replace(',', '.');
+        if (!decimal.TryParse(amountText, NumberStyles.Number, CultureInfo.InvariantCulture, out var amount) || amount <= 0)
+        {
+            ErrorMessage = "Сума має бути додатним числом";
+            return;
+        }
+
+        using (var db = new AppDbContext())
+        {
+            db.Database.EnsureCreated();
+
+            if (_editingRow is null)
             {
-                db.Database.EnsureCreated();
-                var list = db.OtherExpenses.ToList();
-                foreach (var item in list)
+                var record = new OtherExpense
                 {
-                    OtherExpenses.Add(item);
+                    Date = NewDate ?? DateTime.Today,
+                    Type = NewType,
+                    Amount = amount,
+                    Comment = NewComment.Trim()
+                };
+
+                db.OtherExpenses.Add(record);
+                db.SaveChanges();
+                LogService.Info($"Додано витрату {record.Type}: {record.Amount} грн");
+            }
+            else
+            {
+                var record = db.OtherExpenses.Find(_editingRow.Record.Id);
+                if (record is not null)
+                {
+                    record.Date = NewDate ?? DateTime.Today;
+                    record.Type = NewType;
+                    record.Amount = amount;
+                    record.Comment = NewComment.Trim();
+
+                    db.SaveChanges();
+                    LogService.Info($"Змінено витрату {record.Type}: {record.Amount} грн");
                 }
             }
         }
 
-        private void SaveExpense()
-        {
-            if (string.IsNullOrWhiteSpace(Type) || Amount <= 0) return;
-
-            using (var db = new AppDbContext())
-            {
-                db.Database.EnsureCreated();
-                var newExpense = new OtherExpense
-                {
-                    Type = Type,
-                    Amount = Amount,
-                    Date = Date
-                };
-
-                db.OtherExpenses.Add(newExpense);
-                db.SaveChanges();
-            }
-
-            Type = string.Empty;
-            Amount = 0;
-            LoadExpenses();
-        }
+        ClearForm();
+        LoadRecords();
     }
 }
