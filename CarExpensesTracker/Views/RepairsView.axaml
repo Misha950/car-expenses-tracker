@@ -1,63 +1,100 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:m="using:CarExpensesTracker.Models"
              xmlns:vm="using:CarExpensesTracker.ViewModels"
              x:DataType="vm:RepairsViewModel"
              x:Class="CarExpensesTracker.Views.RepairsView">
 
-    <DockPanel>
-        <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0,0,0,12">
-            <TextBlock Text="Ремонти та ТО" FontSize="22" FontWeight="SemiBold" />
+  <UserControl.Styles>
+    <Style Selector="TextBlock.repair">
+      <Setter Property="Foreground" Value="OrangeRed" />
+    </Style>
+    <Style Selector="TextBlock.service">
+      <Setter Property="Foreground" Value="LightGreen" />
+    </Style>
+  </UserControl.Styles>
 
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <StackPanel Spacing="2">
-                    <TextBlock Text="Дата" />
-                    <CalendarDatePicker SelectedDate="{Binding NewDate}" Width="140" />
-                </StackPanel>
-                <StackPanel Spacing="2">
-                    <TextBlock Text="Тип" />
-                    <ComboBox ItemsSource="{Binding Types}" SelectedItem="{Binding NewType}" Width="100" />
-                </StackPanel>
-                <StackPanel Spacing="2">
-                    <TextBlock Text="Опис робіт" />
-                    <TextBox Text="{Binding NewDescription}" Width="240" />
-                </StackPanel>
-                <StackPanel Spacing="2">
-                    <TextBlock Text="Вартість, грн" />
-                    <TextBox Text="{Binding NewCost}" Width="110" />
-                </StackPanel>
-                <StackPanel Spacing="2">
-                    <TextBlock Text="Пробіг, км" />
-                    <TextBox Text="{Binding NewMileage}" Width="110" />
-                </StackPanel>
-                <Button Content="Додати" Command="{Binding AddCommand}" VerticalAlignment="Bottom" />
-            </StackPanel>
+  <DockPanel>
+    <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0,0,0,12">
+      <TextBlock Text="Ремонти та ТО" FontSize="22" FontWeight="SemiBold" />
 
-            <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" />
+      <WrapPanel Orientation="Horizontal">
+        <StackPanel Spacing="2" Margin="0,0,8,8">
+          <TextBlock Text="Дата" />
+          <CalendarDatePicker SelectedDate="{Binding NewDate}" Width="140" />
         </StackPanel>
+        <StackPanel Spacing="2" Margin="0,0,8,8">
+          <TextBlock Text="Тип" />
+          <ComboBox ItemsSource="{Binding Types}" SelectedItem="{Binding NewType}" Width="100" />
+        </StackPanel>
+        <StackPanel Spacing="2" Margin="0,0,8,8">
+          <TextBlock Text="Опис робіт" />
+          <TextBox Text="{Binding NewDescription}" Width="200" />
+        </StackPanel>
+        <StackPanel Spacing="2" Margin="0,0,8,8">
+          <TextBlock Text="Вартість, грн" />
+          <TextBox Text="{Binding NewCost}" Width="100" />
+        </StackPanel>
+        <StackPanel Spacing="2" Margin="0,0,8,8">
+          <TextBlock Text="Пробіг, км" />
+          <TextBox Text="{Binding NewMileage}" Width="100" />
+        </StackPanel>
+        <StackPanel Spacing="2" Margin="0,0,8,8">
+          <TextBlock Text="Наступне ТО" />
+          <CalendarDatePicker SelectedDate="{Binding NewNextServiceDate}" Width="140" />
+        </StackPanel>
+        <Button Content="{Binding SaveButtonText}" Command="{Binding SaveCommand}"
+                VerticalAlignment="Bottom" Margin="0,0,8,8" />
+        <Button Content="Скасувати" Command="{Binding CancelEditCommand}"
+                IsVisible="{Binding IsEditing}" VerticalAlignment="Bottom" Margin="0,0,8,8" />
+      </WrapPanel>
 
-        <Grid DockPanel.Dock="Top" ColumnDefinitions="110,90,*,120,110" Margin="0,0,0,4">
-            <TextBlock Grid.Column="0" Text="Дата" FontWeight="SemiBold" />
-            <TextBlock Grid.Column="1" Text="Тип" FontWeight="SemiBold" />
-            <TextBlock Grid.Column="2" Text="Опис" FontWeight="SemiBold" />
-            <TextBlock Grid.Column="3" Text="Вартість" FontWeight="SemiBold" />
-            <TextBlock Grid.Column="4" Text="Пробіг" FontWeight="SemiBold" />
-        </Grid>
+      <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" />
+    </StackPanel>
 
-        <ScrollViewer>
-            <ItemsControl ItemsSource="{Binding Records}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="m:ServiceRecord">
-                        <Grid ColumnDefinitions="110,90,*,120,110" Margin="0,2">
-                            <TextBlock Grid.Column="0" Text="{Binding Date, StringFormat={}{0:dd.MM.yyyy}}" />
-                            <TextBlock Grid.Column="1" Text="{Binding Type}" />
-                            <TextBlock Grid.Column="2" Text="{Binding Description}" />
-                            <TextBlock Grid.Column="3" Text="{Binding Cost}" />
-                            <TextBlock Grid.Column="4" Text="{Binding Mileage}" />
-                        </Grid>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
-    </DockPanel>
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="100,80,*,100,90,110,230" Margin="0,0,0,4">
+      <TextBlock Grid.Column="0" Text="Дата" FontWeight="SemiBold" />
+      <TextBlock Grid.Column="1" Text="Тип" FontWeight="SemiBold" />
+      <TextBlock Grid.Column="2" Text="Опис" FontWeight="SemiBold" />
+      <TextBlock Grid.Column="3" Text="Вартість" FontWeight="SemiBold" />
+      <TextBlock Grid.Column="4" Text="Пробіг" FontWeight="SemiBold" />
+      <TextBlock Grid.Column="5" Text="Наступне ТО" FontWeight="SemiBold" />
+    </Grid>
+
+    <ScrollViewer>
+      <ItemsControl ItemsSource="{Binding Rows}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:RepairRow">
+            <Grid ColumnDefinitions="100,80,*,100,90,110,230" Margin="0,3">
+              <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                         Text="{Binding Record.Date, StringFormat={}{0:dd.MM.yyyy}}" />
+              <TextBlock Grid.Column="1" VerticalAlignment="Center" FontWeight="SemiBold"
+                         Text="{Binding Record.Type}"
+                         Classes.repair="{Binding IsRepair}"
+                         Classes.service="{Binding IsService}" />
+              <TextBlock Grid.Column="2" VerticalAlignment="Center"
+                         Text="{Binding Record.Description}" />
+              <TextBlock Grid.Column="3" VerticalAlignment="Center"
+                         Text="{Binding Record.Cost, StringFormat={}{0:N2}}" />
+              <TextBlock Grid.Column="4" VerticalAlignment="Center"
+                         Text="{Binding Record.Mileage}" />
+              <TextBlock Grid.Column="5" VerticalAlignment="Center"
+                         Text="{Binding Record.NextServiceDate, StringFormat={}{0:dd.MM.yyyy}}" />
+
+              <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding NotConfirming}">
+                  <Button Content="Редагувати" Command="{Binding EditCommand}" />
+                  <Button Content="Видалити" Command="{Binding AskDeleteCommand}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding ConfirmingDelete}">
+                  <TextBlock Text="Ви впевнені?" VerticalAlignment="Center" />
+                  <Button Content="Так" Command="{Binding ConfirmDeleteCommand}" />
+                  <Button Content="Ні" Command="{Binding CancelDeleteCommand}" />
+                </StackPanel>
+              </StackPanel>
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </DockPanel>
 </UserControl>
