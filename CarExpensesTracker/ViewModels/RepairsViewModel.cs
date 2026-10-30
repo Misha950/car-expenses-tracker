@@ -6,6 +6,7 @@ using CarExpensesTracker.Data;
 using CarExpensesTracker.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CarExpensesTracker.Services;
 
 namespace CarExpensesTracker.ViewModels;
 
@@ -89,6 +90,7 @@ public partial class RepairsViewModel : ViewModelBase
             db.ServiceRecords.Add(record);
             db.SaveChanges();
         }
+        LogService.Info($"Додано {record.Type}: {record.Description}, {record.Cost} грн, пробіг {record.Mileage}");
 
         NewDescription = string.Empty;
         NewCost = string.Empty;
