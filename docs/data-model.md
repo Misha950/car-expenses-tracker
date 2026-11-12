@@ -9,24 +9,26 @@ erDiagram
         dateTime Date
         decimal Liters
         decimal PricePerLiter
-        decimal TotalCost
-        int Odometer
-        string Notes
+        int Mileage
     }
 
     ServiceRecord {
         int Id PK
         dateTime Date
-        string ServiceType
-        decimal TotalCost
-        int Odometer
+        string Type
         string Description
+        decimal Cost
+        int Mileage
+        dateTime NextServiceDate "необов'язково"
     }
 
     OtherExpense {
         int Id PK
         dateTime Date
-        string Category
-        decimal TotalCost
-        string Notes
+        string Type
+        decimal Amount
+        string Comment
     }
+```
+
+Примітка: загальна сума заправки (`TotalCost = Liters × PricePerLiter`) не зберігається в базі, а обчислюється в коді. Таблиці між собою не повʼязані: кожна зберігає окремий вид витрат.
