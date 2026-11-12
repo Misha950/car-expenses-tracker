@@ -1,5 +1,75 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CarExpensesTracker.ViewModels"
+             x:DataType="vm:OtherExpensesViewModel"
              x:Class="CarExpensesTracker.Views.OtherExpensesView">
-    <TextBlock Text="Інші витрати — екран у розробці" FontSize="20" />
+
+  <DockPanel>
+    <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0,0,0,12">
+      <TextBlock Text="Інші витрати" FontSize="22" FontWeight="SemiBold" />
+
+      <WrapPanel Orientation="Horizontal">
+        <StackPanel Spacing="2" Margin="0,0,8,8">
+          <TextBlock Text="Дата" />
+          <CalendarDatePicker SelectedDate="{Binding NewDate}" Width="140" />
+        </StackPanel>
+        <StackPanel Spacing="2" Margin="0,0,8,8">
+          <TextBlock Text="Тип" />
+          <ComboBox ItemsSource="{Binding Types}" SelectedItem="{Binding NewType}" Width="140" />
+        </StackPanel>
+        <StackPanel Spacing="2" Margin="0,0,8,8">
+          <TextBlock Text="Сума, грн" />
+          <TextBox Text="{Binding NewAmount}" Width="110" />
+        </StackPanel>
+        <StackPanel Spacing="2" Margin="0,0,8,8">
+          <TextBlock Text="Коментар" />
+          <TextBox Text="{Binding NewComment}" Width="240" />
+        </StackPanel>
+        <Button Content="{Binding SaveButtonText}" Command="{Binding SaveCommand}"
+                VerticalAlignment="Bottom" Margin="0,0,8,8" />
+        <Button Content="Скасувати" Command="{Binding CancelEditCommand}"
+                IsVisible="{Binding IsEditing}" VerticalAlignment="Bottom" Margin="0,0,8,8" />
+      </WrapPanel>
+
+      <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" />
+    </StackPanel>
+
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="100,120,110,*,230" Margin="0,0,0,4">
+      <TextBlock Grid.Column="0" Text="Дата" FontWeight="SemiBold" />
+      <TextBlock Grid.Column="1" Text="Тип" FontWeight="SemiBold" />
+      <TextBlock Grid.Column="2" Text="Сума" FontWeight="SemiBold" />
+      <TextBlock Grid.Column="3" Text="Коментар" FontWeight="SemiBold" />
+    </Grid>
+
+    <ScrollViewer>
+      <ItemsControl ItemsSource="{Binding Rows}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:OtherExpenseRow">
+            <Grid ColumnDefinitions="100,120,110,*,230" Margin="0,3">
+              <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                         Text="{Binding Record.Date, StringFormat={}{0:dd.MM.yyyy}}" />
+              <TextBlock Grid.Column="1" VerticalAlignment="Center"
+                         Text="{Binding Record.Type}" />
+              <TextBlock Grid.Column="2" VerticalAlignment="Center"
+                         Text="{Binding Record.Amount, StringFormat={}{0:N2}}" />
+              <TextBlock Grid.Column="3" VerticalAlignment="Center"
+                         Text="{Binding Record.Comment}" />
+
+              <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding NotConfirming}">
+                  <Button Content="Редагувати" Command="{Binding EditCommand}" />
+                  <Button Content="Видалити" Command="{Binding AskDeleteCommand}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding ConfirmingDelete}">
+                  <TextBlock Text="Ви впевнені?" VerticalAlignment="Center" />
+                  <Button Content="Так" Command="{Binding ConfirmDeleteCommand}" />
+                  <Button Content="Ні" Command="{Binding CancelDeleteCommand}" />
+                </StackPanel>
+              </StackPanel>
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </DockPanel>
 </UserControl>
