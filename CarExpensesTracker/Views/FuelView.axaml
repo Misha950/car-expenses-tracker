@@ -1,5 +1,81 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:CarExpensesTracker.ViewModels"
+             x:DataType="vm:FuelViewModel"
              x:Class="CarExpensesTracker.Views.FuelView">
-    <TextBlock Text="Заправки — екран у розробці" FontSize="20" />
+
+  <DockPanel>
+    <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0,0,0,12">
+      <TextBlock Text="Заправки" FontSize="22" FontWeight="SemiBold" />
+
+      <WrapPanel Orientation="Horizontal">
+        <StackPanel Spacing="2" Margin="0,0,8,8">
+          <TextBlock Text="Дата" />
+          <CalendarDatePicker SelectedDate="{Binding NewDate}" Width="140" />
+        </StackPanel>
+        <StackPanel Spacing="2" Margin="0,0,8,8">
+          <TextBlock Text="Літри" />
+          <TextBox Text="{Binding NewLiters}" Width="90" />
+        </StackPanel>
+        <StackPanel Spacing="2" Margin="0,0,8,8">
+          <TextBlock Text="Ціна за літр, грн" />
+          <TextBox Text="{Binding NewPricePerLiter}" Width="120" />
+        </StackPanel>
+        <StackPanel Spacing="2" Margin="0,0,8,8">
+          <TextBlock Text="Пробіг, км" />
+          <TextBox Text="{Binding NewMileage}" Width="110" />
+        </StackPanel>
+        <Button Content="{Binding SaveButtonText}" Command="{Binding SaveCommand}"
+                VerticalAlignment="Bottom" Margin="0,0,8,8" />
+        <Button Content="Скасувати" Command="{Binding CancelEditCommand}"
+                IsVisible="{Binding IsEditing}" VerticalAlignment="Bottom" Margin="0,0,8,8" />
+      </WrapPanel>
+
+      <TextBlock Text="{Binding ErrorMessage}" Foreground="Red" />
+    </StackPanel>
+
+    <TextBlock DockPanel.Dock="Top" Text="Записів про заправки ще немає"
+               IsVisible="{Binding IsEmpty}" Margin="0,0,0,8" />
+
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="100,80,110,110,110,230" Margin="0,0,0,4">
+      <TextBlock Grid.Column="0" Text="Дата" FontWeight="SemiBold" />
+      <TextBlock Grid.Column="1" Text="Літри" FontWeight="SemiBold" />
+      <TextBlock Grid.Column="2" Text="Ціна/л" FontWeight="SemiBold" />
+      <TextBlock Grid.Column="3" Text="Сума" FontWeight="SemiBold" />
+      <TextBlock Grid.Column="4" Text="Пробіг" FontWeight="SemiBold" />
+    </Grid>
+
+    <ScrollViewer>
+      <ItemsControl ItemsSource="{Binding Rows}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:FuelRow">
+            <Grid ColumnDefinitions="100,80,110,110,110,230" Margin="0,3">
+              <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                         Text="{Binding Record.Date, StringFormat={}{0:dd.MM.yyyy}}" />
+              <TextBlock Grid.Column="1" VerticalAlignment="Center"
+                         Text="{Binding Record.Liters, StringFormat={}{0:N2}}" />
+              <TextBlock Grid.Column="2" VerticalAlignment="Center"
+                         Text="{Binding Record.PricePerLiter, StringFormat={}{0:N2}}" />
+              <TextBlock Grid.Column="3" VerticalAlignment="Center"
+                         Text="{Binding Record.TotalCost, StringFormat={}{0:N2}}" />
+              <TextBlock Grid.Column="4" VerticalAlignment="Center"
+                         Text="{Binding Record.Mileage}" />
+
+              <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding NotConfirming}">
+                  <Button Content="Редагувати" Command="{Binding EditCommand}" />
+                  <Button Content="Видалити" Command="{Binding AskDeleteCommand}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding ConfirmingDelete}">
+                  <TextBlock Text="Ви впевнені?" VerticalAlignment="Center" />
+                  <Button Content="Так" Command="{Binding ConfirmDeleteCommand}" />
+                  <Button Content="Ні" Command="{Binding CancelDeleteCommand}" />
+                </StackPanel>
+              </StackPanel>
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </DockPanel>
 </UserControl>
